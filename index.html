@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Ôn Tập Kiểm Thử Phần Mềm - Đảo Đề Ngẫu Nhiên</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        .question-block {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+            transition: border-left 0.3s;
+        }
+        .question-text {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            white-space: pre-line;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+        }
+        label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        label:hover {
+            background-color: #e8f4f8;
+            border-color: #bce0ee;
+        }
+        label.disabled-label {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: inherit;
+        }
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95em;
+        }
+        .feedback strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .btn-restart {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #34495e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 30px;
+        }
+        .btn-restart:hover {
+            background-color: #2c3e50;
+        }
+        code, pre {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        pre {
+            padding: 12px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hệ Thống Trắc Nghiệm Ôn Tập (Đảo Đề Ngẫu Nhiên)</h1>
+    <div id="quiz-container"></div>
+    <button class="btn-restart" onclick="restartQuiz()">Làm Lại Từ Đầu</button>
+</div>
+
+<script>
+    const quizData = [
+        { q: "Câu 1:\nMục tiêu quan trọng nhất của việc xác định độ ưu tiên kiểm thử là gì?", options: { A: "Tìm càng nhiều lỗi càng tốt.", B: "Test các khu vực rủi ro cao.", C: "Đạt được độ bao phủ cao.", D: "Cái nào dễ thì test trước." }, answer: "B", explanation: "Xác định độ ưu tiên kiểm thử lấy rủi ro làm trọng tâm để đảm bảo các lỗi nghiêm trọng nhất ở khu vực quan trọng được phát hiện sớm." },
+        { q: "Câu 2:\nKiểm thử được thực hiện dù khi", options: { A: "Hết thời gian.", B: "Độ tin cậy cần thiết đã đạt.", C: "Không tìm thấy lỗi nào nữa.", D: "Người dùng sẽ không tìm thấy bất kỳ lỗi nghiêm trọng nào." }, answer: "B", explanation: "Kiểm thử dừng lại khi phần mềm đã đạt được mức độ tin cậy và chất lượng mong muốn theo tiêu chí đánh giá ban đầu (Exit criteria)." },
+        { q: "Câu 3:\nĐiều nào sau đây mô tả lợi ích chính của việc xác minh (verification) sớm trong vòng đời?", options: { A: "Nó cho phép xác định các thay đổi trong yêu cầu của người dùng.", B: "Nó tạo điều kiện cho việc thiết lập môi trường kiểm thử kịp thời.", C: "Nó làm giảm sự gia tăng của lỗi.", D: "Nó cho phép người kiểm thử sớm tham gia vào dự án." }, answer: "C", explanation: "Xác minh sớm giúp phát hiện lỗi từ khâu thiết kế/yêu cầu, ngăn lỗi lọt xuống pha code và sinh ra nhiều lỗi dây chuyền khác (Defect Propagation)." },
+        { q: "Câu 4:\nKiểm thử alpha là:", options: { A: "kiểm thử sau khi phát hành được thực hiện bởi người dùng cuối.", B: "Kiểm thử đầu tiên được thực hiện.", C: "Kiểm thử trước khi phát hành được thực hiện bởi nhóm đại diện người dùng.", D: "Kiểm thử cuối cùng trước khi phát hành." }, answer: "C", explanation: "Alpha test do người dùng hoặc nhóm đại diện thực hiện tại môi trường của nhà phát triển trước khi phát hành nội bộ." },
+        { q: "Câu 5:\nTrong một hệ thống được thiết kế để tính thuế phải trả:\nMột nhân viên có £4000 tiền lương miễn thuế. £1500 tiếp theo bị đánh thuế 10%. £28000 tiếp theo bị đánh thuế 22%. Bất kỳ số tiền còn lại sẽ bị đánh thuế ở mức 40%.\nNhóm nào trong số các nhóm sẽ rơi vào cùng một lớp tương đương?", options: { A: "£ 4800; £ 14000; £ 28000", B: "£ 5200; £ 5500; £ 28000", C: "£ 28001; £ 32000; £ 35000", D: "£ 5800; £ 28000; £ 32000" }, answer: "C", explanation: "Dựa vào các mốc: <=4000 (Miễn thuế), 4001-5500 (10%), 5501-33500 (22%), >33500 (40%). Các giá trị ở đáp án C rơi vào cùng dải chịu thuế (theo chuẩn ISTQB)." },
+        { q: "Câu 6:\nĐiều quan trọng nhất về thiết kế kiểm thử sớm là:", options: { A: "Làm cho việc chuẩn bị kiểm thử dễ dàng hơn.", B: "Giúp việc kiểm thử nhanh hơn.", C: "Có thể ngăn chặn sự nhân lên của lỗi.", D: "Giúp tìm ra tất cả các lỗi." }, answer: "C", explanation: "Thiết kế test case sớm giúp phát hiện lỗi tài liệu, ngăn chặn lỗi được nhân bản khi code bắt đầu." },
+        { q: "Câu 7:\nPhát biểu nào sau đây là phát biểu đúng về review?", options: { A: "Review không thể thực hiện dựa trên thông số kỹ thuật yêu cầu của người dùng.", B: "Review là cách kiểm tra mã kém hiệu quả nhất.", C: "Review không có khả năng tìm ra lỗi trong kế hoạch kiểm thử.", D: "Review được thực hiện dựa theo thông số kỹ thuật, code và kế hoạch kiểm thử" }, answer: "D", explanation: "Review (kiểm thử tĩnh) có thể thực hiện trên bất kỳ tài liệu nào (SRS, code, Test plan...)." },
+        { q: "Câu 8:\nCác test case được thiết kế khi nào?", options: { A: "Khi thực thi kiểm thử", B: "Khi lập kế hoạch kiểm thử", C: "Khi cấu hình môi trường kiểm thử", D: "Khi phân tích và thiết kế kiểm thử" }, answer: "D", explanation: "Test case được thiết kế chính thức trong giai đoạn Phân tích và Thiết kế Kiểm thử (Test Analysis & Design)." },
+        { q: "Câu 9:\nNếu kết quả mong đợi (trong test case) không được xác định thì:", options: { A: "Chúng ta không thể chạy kiểm thử", B: "Có thể khó lặp lại bài kiểm thử", C: "Có thể khó xác định xem bài kiểm thử là đạt hay không đạt", D: "Chúng ta không thể nhập tự động đầu vào của người dùng" }, answer: "C", explanation: "Không có kết quả mong đợi, Tester không có cơ sở khách quan để phán đoán test case Pass hay Fail." },
+        { q: "Câu 10:\nXác minh (verification) là:", options: { A: "Kiểm thử xem chúng ta có đang xây dựng hệ thống có phù hợp không", B: "Kiểm thử xem chúng ta có đang xây dựng hệ thống đúng cách không", C: "Được thực hiện bởi một nhóm kiểm thử độc lập", D: "Đảm bảo rằng đó là những gì người dùng thực sự muốn" }, answer: "B", explanation: "Verification trả lời câu hỏi 'Are we building the product right?' (Xây dựng đúng cách, đúng đặc tả kỹ thuật)." },
+        { q: "Câu 11:\nKhi kiểm thử hệ thống tính điểm, tester xác định rằng tất cả các điểm từ 90 đến 100 sẽ mang lại kết quả A, nhưng điểm dưới 90 sẽ không được điểm A. Phương pháp phân tích này được gọi là:", options: { A: "Phân vùng tương đương", B: "Phân tích giá trị ranh giới", C: "Bảng quyết định", D: "Phân tích lại" }, answer: "A", explanation: "Chia các giá trị điểm thành các vùng có chung hành vi xử lý (>=90 và <90) gọi là Phân vùng tương đương." },
+        { q: "Câu 12:\nPhát biểu nào sau đây đúng với kiểm thử beta", options: { A: "Được thực hiện bởi coder", B: "Được thực hiện bởi các chuyên gia", C: "Được thực hiện bởi người dùng cuối", D: "Được thực hiện bởi tester" }, answer: "C", explanation: "Beta test là bài test do người dùng cuối (End users) thực hiện tại môi trường thực tế của họ." },
+        { q: "Câu 13:\nPhát biểu nào sau đây về tiêu chuẩn component testing là sai:", options: { A: "Các kỹ thuật kiểm thử hộp đen đều có một kỹ thuật đo lường liên quan", B: "Các kỹ thuật kiểm thử hộp trắng đều có một kỹ thuật đo lường liên quan", C: "Độ phức tạp chu trình không phải là một kỹ thuật do kiểm thử", D: "Các kỹ thuật đo lường kiểm thử hộp trắng đều có một kỹ thuật thiết kế kiểm thử liên quan" }, answer: "C", explanation: "Độ phức tạp chu trình (Cyclomatic Complexity) CHÍNH LÀ một thước đo rất quan trọng trong kiểm thử hộp trắng." },
+        { q: "Câu 14:\nPhát biểu nào sau đây đúng về kết quả mong đợi.", options: { A: "Chỉ quan trọng trong kiểm thử hệ thống", B: "Chỉ được sử dụng trong kiểm thử đơn vị", C: "Không bao giờ được xác định trước", D: "Hữu ích nhất khi được xác định trước" }, answer: "D", explanation: "Kết quả mong đợi cần xác định trước khi chạy test để đảm bảo tính minh bạch, khách quan." },
+        { q: "Câu 15:\nGiven the Following program\nIF X < Y THEN Statement 1;\nELSE\nIF Y >= Z THEN Statement 2;\nEND\nĐộ phức tạp chu trình là bao nhiêu?", options: { A: "2", B: "3", C: "4", D: "5" }, answer: "B", explanation: "Có 2 lệnh điều kiện IF. Áp dụng công thức McCabe M = số lượng điều kiện + 1 = 2 + 1 = 3." },
+        { q: "Câu 16:\nChúng ta có thể tìm thấy điều kiện dừng kiểm thử trong tài liệu nào.", options: { A: "Báo cáo kết quả kiểm thử", B: "Test suite", C: "Test case", D: "Test plan" }, answer: "D", explanation: "Điều kiện dừng (Exit criteria) luôn được định nghĩa cụ thể trong Kế hoạch kiểm thử (Test Plan)." },
+        { q: "Câu 17:\nSau giai đoạn nào, chúng ta có thể tiến hành kiểm thử hộp trắng?", options: { A: "Sau giai đoạn code", B: "Sau giai đoạn thiết kế", C: "Sau khi tạo SRS", D: "Sau giai đoạn cài đặt" }, answer: "A", explanation: "Hộp trắng can thiệp vào logic dòng code, nên chỉ thực hiện được sau khi Dev đã viết code." },
+        { q: "Câu 18:\nLý do chính để kiểm thử phần mềm trước khi phát hành là gì?", options: { A: "để cho thấy rằng hệ thống sẽ hoạt động sau khi phát hành", B: "để quyết định khi nào phần mềm có đủ chất lượng để phát hành", C: "để tìm càng nhiều lỗi càng tốt trước khi phát hành", D: "để cung cấp thông tin cho một quyết định dựa trên rủi ro về việc phát hành" }, answer: "D", explanation: "Mục đích lớn nhất là cung cấp bức tranh rõ ràng về chất lượng và rủi ro để ban quản lý quyết định phát hành hay không." },
+        { q: "Câu 19:\nPhát biểu nào sau đây đúng về độ bao phủ", options: { A: "Không liên quan gì đến thử nghiệm", B: "Là một thước đo về tính kỹ lưỡng của thử nghiệm", C: "Độ phủ nhánh phải là bắt buộc đối với tất cả phần mềm", D: "Chỉ có thể được áp dụng trong kiểm thử đơn vị hoặc mô-đun, không áp dụng trong kiểm thử hệ thống" }, answer: "B", explanation: "Độ bao phủ (Coverage) đo lường xem chúng ta đã test được bao nhiêu phần trăm hệ thống/mã nguồn." },
+        { q: "Câu 20:\nLỗi nào trong các lỗi sau tốn chi phí khắc phục nhất", options: { A: "Lỗi trong đặc tả chương trình", B: "Lỗi trong code", C: "Lỗi trong yêu cầu", D: "Lỗi trong thiết kế" }, answer: "C", explanation: "Lỗi ở pha Yêu cầu (Requirements) tốn chi phí sửa nhất vì nó kéo theo phải đập bỏ thiết kế và code lại từ đầu." },
+        { q: "Câu 21:\nMục tiêu chính khi review một giao phẩm phần mềm là gì?", options: { A: "Để xác định các lỗi tiềm ẩn bằng cách sử dụng đặc tả kiểm thử", B: "Để xác định các (defect) khiếm khuyết trong bất kỳ sản phẩm công việc phần mềm nào.", C: "Để xác định các lỗi chính tả trong một đặc tả yêu cầu.", D: "Để xác định code viết không theo chuẩn." }, answer: "B", explanation: "Review (kiểm thử tĩnh) nhắm tới việc tìm các lỗi (defect) trong bất kỳ tài liệu hay giao phẩm nào." },
+        { q: "Câu 22:\nViệc xác định tiêu chí dừng kiểm thử được thực hiện khi nào?", options: { A: "Trong khi lập kế hoạch kiểm thử.", B: "Khi đánh giá các tiêu chí dừng và lập báo cáo.", C: "Khi đóng quá trình kiểm thử.", D: "Khi kiểm soát quá trình kiểm thử." }, answer: "A", explanation: "Tiêu chí dừng (Exit Criteria) phải được quy định rõ từ ban đầu trong Test Plan." },
+        { q: "Câu 23:\nCho đoạn mã sau, cần tối thiểu bao nhiêu test case để phủ quyết định 100%?\nif width > length then\n    biggest_dimension = width\n    if height > width then\n        biggest_dimension = height\n    end_if\nelse\n    biggest_dimension = length\n    if height > length then\n        biggest_dimension = height\n    end_if\nend_if", options: { A: "3", B: "4", C: "2", D: "1" }, answer: "A", explanation: "Để đi hết các nhánh: Nhánh else cần 1 TC. Nhánh if ngoài cùng có if lồng bên trong cần tối thiểu 2 TC để lướt qua True/False. Tổng cộng 3 TC." },
+        { q: "Câu 24:\nBạn đã thiết kế các test case để đạt 100% phủ lệnh và 100% phủ quyết định cho đoạn mã sau:\nif width > length then\n    biggest_dimension = width\nelse\n    biggest_dimension = length\nend_if\n\nPhần sau được thêm vào cuối đoạn mã ở trên:\nprint \"Biggest dimension is \" & biggest_dimension\nprint \"Width: \" & width\nprint \"Length: \" & length\nHỏi cần thêm bao nhiêu test case nữa để đạt được yêu cầu?", options: { A: "Thêm 1 test case nữa để đạt phủ cấp 2.", B: "Thêm 2 test case nữa để phủ cấp 1 và 1 trong 2 test case đó được dùng để phủ cấp 2.", C: "Không cần thêm test case nào nữa.", D: "Thêm 1 test case nữa để đạt phủ cấp 1." }, answer: "C", explanation: "Lệnh in tuần tự ở cuối chắc chắn sẽ được đi qua bởi các test case cũ, không tạo nhánh mới nên không cần thêm TC nào." },
+        { q: "Câu 25:\nTest suite được tạo ra trong giai đoạn nào?", options: { A: "Phân tích yêu cầu.", B: "Lập kế hoạch.", C: "Phát triển test case.", D: "Thiết lập môi trường." }, answer: "C", explanation: "Test suite (tập hợp các test case) được hình thành ở bước hiện thực và phát triển test case." },
+        { q: "Câu 26:\nKiểm tra hệ thống nên:", options: { A: "Chỉ kiểm các yêu cầu phi chức năng không cần kiểm các yêu cầu chức năng.", B: "Chỉ kiểm các yêu cầu phi chức năng không cần kiểm các yêu cầu chức năng.", C: "Kiểm cả yêu cầu phi chức năng và yêu cầu chức năng.", D: "Kiểm yêu cầu phi chức năng hoặc yêu cầu chức năng." }, answer: "C", explanation: "System Testing phải bao trọn gói đánh giá cả chức năng (Functional) và phi chức năng (Non-Functional)." },
+        { q: "Câu 27:\nCái nào không phải là mục tiêu kiểm thử", options: { A: "Tìm khuyết điểm của phần mềm.", B: "Để đạt được mức độ tin tưởng về chất lượng.", C: "Ngăn ngừa khiếm khuyết.", D: "Gỡ lỗi." }, answer: "D", explanation: "Gỡ lỗi (Debugging) là việc của Developer để fix bug, không nằm trong mục tiêu của Tester." },
+        { q: "Câu 28:\nThứ tự nào sau đây phù hợp với vòng đời bug.", options: { A: "Open, Assigned, Fixed, Closed", B: "Open, Fixed, Assigned, Closed", C: "Assigned, Open, Closed, Fixed", D: "Assigned, Open, Fixed, Closed" }, answer: "A", explanation: "Mở bug (Open) -> Giao việc (Assigned) -> Sửa xong (Fixed) -> Kiểm tra lại và Đóng (Closed)." },
+        { q: "Câu 29:\nPhát biểu nào sau đây mô tả về kiểm thử tĩnh là sai:", options: { A: "Kiểm tra tĩnh yêu cầu chạy các bài kiểm tra thông qua mã.", B: "Kiểm tra tĩnh bao gồm kiểm tra bàn.", C: "Kiểm tra tĩnh bao gồm các kỹ thuật như xem xét và kiểm tra.", D: "Kiểm tra tĩnh có thể cho các phép đo như độ phức tạp chu kỳ." }, answer: "A", explanation: "Kiểm thử tĩnh (Static testing) KHÔNG thực thi (chạy) mã nguồn." },
+        { q: "Câu 30:\nPhát biểu nào sau đây không đúng về kiểm thử hồi quy", options: { A: "Để đảm bảo phần mềm sau khi sửa chữa không gặp thêm lỗi mới có liên quan.", B: "Để đảm bảo các test case mới không trùng với test case cũ.", C: "Để đảm bảo phiên bản mới nhất của phần mềm không làm ảnh hưởng đến các chức năng đang hoạt động tốt.", D: "Để tiết kiệm công sức phải kiểm thử lại toàn bộ hệ thống." }, answer: "B", explanation: "Việc lọc test case trùng lặp là quản lý test case, không phải định nghĩa hay mục đích của kiểm thử hồi quy." },
+        { q: "Câu 31:\nPhát biểu nào sau đây phù hợp nhất với code review", options: { A: "Chạy các test case để phát hiện các vấn đề của code.", B: "Chạy chương trình bằng tay để tìm lỗi.", C: "Dựa vào sơ đồ dòng dữ liệu để tìm lỗi.", D: "So sánh với tài liệu thiết kế để xác định code chưa đạt." }, answer: "D", explanation: "Code review so sánh mã nguồn gốc với các quy chuẩn tài liệu thiết kế để phát hiện lỗi logic tĩnh." },
+        { q: "Câu 32:\nCác bước cơ bản của quá trình kiểm thử dòng điều khiển là", options: { A: "Tính độ phức tạp chu trình để xác định loại đồ thị dòng điều khiển, xác định đường thi hành, sinh test case dựa vào đường thi hành.", B: "Sinh đồ thị các test case từ code với độ đo cần kiểm thử, thực hiện các test case.", C: "Sinh đồ thị dòng điều khiển CFG với tiêu chỉ độ đo cần kiểm thử, sinh các test case, thực hiện các test case.", D: "Sinh đồ thị dòng điều khiển CFG với tiêu chỉ độ đo cần kiểm thử, sinh các đường thi hành, sinh test case, thực hiện các test case." }, answer: "D", explanation: "Chuẩn các bước Control Flow Testing: Vẽ đồ thị CFG -> Xác định đường chạy (paths) -> Tạo test case -> Thực thi." },
+        { q: "Câu 33:\nĐịnh nghĩa nào là phù hợp cho test case", options: { A: "Là một cơ chế xác minh tính chính xác của kết quả đầu ra.", B: "Là một cơ sở nguyên tắc về đo lường và thống kê.", C: "Là một tập giá trị đầu vào và đầu ra mong đợi.", D: "Là một trạng thái của hệ thống." }, answer: "C", explanation: "Test case cốt lõi là sự kết hợp giữa điều kiện đầu vào và kết quả đầu ra mong đợi để đối chiếu." },
+        { q: "Câu 34:\nPhát biểu nào đúng về mối quan hệ giữa bao phủ dòng lệnh và bao phủ quyết định", options: { A: "Bao phủ quyết định đạt 100% sẽ đảm bảo bao phủ lệnh 100%.", B: "Bao phủ lệnh đạt 100% sẽ đảm bảo bao phủ quyết định 100%.", C: "Bao phủ lệnh đạt 50% sẽ đảm bảo bao phủ quyết định 100%.", D: "Bao phủ quyết định đạt 50% sẽ đảm bảo bao phủ lệnh 100%." }, answer: "A", explanation: "Bao phủ nhánh (quyết định) mạnh hơn và bao hàm toàn bộ bao phủ lệnh (statement)." },
+        { q: "Câu 35:\nCông ty X muốn xây dựng hàm tính thưởng của một nhân viên dựa vào số năm làm việc với các mức sau:\nÍt hơn hoặc bằng 2 năm: 1 triệu\nNhiều hơn 2 năm và ít hơn 5 năm: 2 triệu\nNhiều hơn 5 năm và ít hơn 10 năm: 3 triệu\nTrên 10 năm: 4 triệu\nĐể kiểm thử hàm tính thưởng của công ty X theo phương pháp phân hoạch tương đương, cần tối thiểu bao nhiêu test case?", options: { A: "2", B: "3", C: "4", D: "5" }, answer: "D", explanation: "Có 4 vùng hợp lệ (chia theo mốc năm) và thêm ít nhất 1 vùng không hợp lệ (số năm <= 0). Tổng là 5 test case." },
+        { q: "Câu 36:\nThông tin nào không có trong báo cáo kết quả kiểm thử", options: { A: "Mục tiêu kiểm thử và tiêu chí để đánh giá.", B: "Các vấn đề xảy ra trong quá trình kiểm thử.", C: "So sánh tiến trình thực tế với các tiêu chí đã đặt ra.", D: "Đánh giá chất lượng của đối tượng được kiểm thử." }, answer: "A", explanation: "Mục tiêu và tiêu chí đánh giá nằm trong Kế hoạch kiểm thử (Test Plan), không nằm trong báo cáo kết quả (Test Summary Report)." },
+        { q: "Câu 37:\nKiểm thử chức năng được thực hiện khi nào?", options: { A: "Chỉ được thực hiện ở mức kiểm thử hệ thống và kiểm thử chấp nhận", B: "Chỉ được thực hiện ở mức kiểm thử đơn vị", C: "Chỉ được thực hiện ở mức kiểm thử chấp nhận", D: "Được thực hiện ở tất cả các mức kiểm thử" }, answer: "D", explanation: "Functional testing xoay quanh nghiệp vụ nên có thể được áp dụng xuyên suốt mọi cấp độ kiểm thử." },
+        { q: "Câu 38:\nĐâu không phải là mục tiêu của kiểm thử", options: { A: "Tìm lỗi", B: "Tăng sự tự tin về chất lượng của chương trình", C: "Ngăn chặn lỗi", D: "Tìm nguyên nhân lỗi" }, answer: "D", explanation: "Tìm nguyên nhân sâu xa của lỗi là hoạt động của quá trình Gỡ lỗi (Debugging), thuộc về lập trình viên." },
+        { q: "Câu 39:\nKiểm thử tĩnh được thực hiện trong giai đoạn nào?", options: { A: "Đặc tả yêu cầu", B: "Thiết kế", C: "Lập trình", D: "Tất cả các giai đoạn trên" }, answer: "D", explanation: "Kiểm thử tĩnh có thể là review tài liệu yêu cầu, tài liệu thiết kế hoặc review mã nguồn (lập trình), nên bao trùm tất cả." },
+        { q: "Câu 40:\n“Ngụy biện không có lỗi” (absence-of-errors fallacy) nghĩa là gì?", options: { A: "Nếu không tìm thấy lỗi thì chắc chắn không có lỗi", B: "Nếu phần mềm ít lỗi thì chắc chắn đáp ứng nhu cầu người dùng", C: "Dù ít/không có lỗi, phần mềm vẫn có thể không đáp ứng nhu cầu/giá trị sử dụng", D: "Lỗi chỉ xuất hiện khi thay đổi môi trường triển khai" }, answer: "C", explanation: "Phần mềm không có lỗi kỹ thuật vẫn có thể vô dụng nếu xây dựng sai yêu cầu thực tế của người dùng." },
+        { q: "Câu 41:\nPhát biểu nào mô tả đúng “exhaustive testing” (kiểm thử toàn diện)?", options: { A: "Luôn bắt buộc với mọi dự án", B: "Thường không khả thi vì số lượng trường hợp đầu vào/quyết định quá lớn", C: "Chỉ áp dụng cho UI testing", D: "Chỉ cần đạt 100% statement coverage là đủ gọi là exhaustive" }, answer: "B", explanation: "Test mọi trường hợp là điều bất khả thi (Impossible) trong thực tế vì sự kết hợp đầu vào là vô hạn." },
+        { q: "Câu 42:\nTrong Junit, khi test có tham số thì annotation nào thường dùng để truyền dữ liệu nhiều dòng (CSV) trực tiếp?", options: { A: "@CsvSource", B: "@ValueSource", C: "@MethodSource", D: "@FileSource" }, answer: "A", explanation: "@CsvSource hỗ trợ truyền trực tiếp dữ liệu tĩnh dạng bảng (comma-separated) cho hàm test." },
+        { q: "Câu 43:\nĐể kiểm tra list chứa đúng các phần tử theo thứ tự 1,2,3, matcher phù hợp nhất là:", options: { A: "hasItems(1,2,3)", B: "contains(1,2,3)", C: "containsInAnyOrder(1,2,3)", D: "everyItem(isOneOf(1,2,3))" }, answer: "B", explanation: "Matcher contains() trong Hamcrest yêu cầu khớp chính xác giá trị và cả thứ tự các phần tử trong danh sách." },
+        { q: "Câu 44:\nTrong JUnit 5, Annotation nào sau đây làm cho 1 phương thức được chạy trước phương thức test trong test class?", options: { A: "@BeforeEach", B: "@BeforeAll", C: "@Before", D: "@Before" }, answer: "A", explanation: "@BeforeEach (JUnit 5) chỉ định chạy hàm này một lần trước MỖI test case." },
+        { q: "Câu 45:\nTrong JUnit 5, Matcher nào kiểm tra chuỗi bằng nhau, bỏ qua hoa/thường?", options: { A: "equalToIgnoreCase()", B: "equalsIgnoreCase()", C: "sameTextIgnoreCase()", D: "textEqualsIgnoreCase()" }, answer: "A", explanation: "equalToIgnoreCase() là matcher được sử dụng để so sánh chuỗi không phân biệt ký tự hoa thường." },
+        { q: "Câu 46:\nTrong chiến lược kiểm thử tích hợp từ trên xuống (Top-down Integration), thành phần giả lập được sử dụng để thay thế cho các module cấp thấp chưa được phát triển gọi là gì?", options: { A: "Driver", B: "Stub", C: "Dummy", D: "Proxy" }, answer: "B", explanation: "Stub là module giả lập nằm ở dưới để hứng luồng gọi từ module thực nằm bên trên." },
+        { q: "Câu 47:\nCho đoạn mã sau, cần tối thiểu bao nhiêu test case để phủ nhánh 100%?\nint n; cout << \"Nhap n: \"; cin >> n; switch (n%3) {\ncase 0: cout << \"Chia het cho 3\"; break;\ncase 1: case 2: cout << \"Khong chia het cho 3\"; }", options: { A: "2", B: "3", C: "1", D: "4" }, answer: "A", explanation: "Khối switch có 2 nhánh in ra màn hình riêng biệt (case 0 và case 1+2). Cần 2 test case để đi qua cả 2 ngả rẽ này." },
+        { q: "Câu 48:\nHoạt động nào dùng để kiểm tra xem đã phát triển sản phẩm theo yêu cầu của khách hàng chưa.", options: { A: "Validation", B: "Verification", C: "Quality Assurance", D: "Quality Control" }, answer: "A", explanation: "Validation là xác nhận sản phẩm đã xây dựng có đáp ứng đúng yêu cầu của người dùng hay không." },
+        { q: "Câu 49:\nAnnotation JUnit nào được sử dụng để đánh dấu một phương thức test có tham số?", options: { A: "@ParametrizedTest", B: "@Parameterized", C: "@ParamTest", D: "@ParameterizedTest" }, answer: "D", explanation: "@ParameterizedTest khai báo đây là hàm chạy lặp với nhiều dữ liệu kiểm thử được truyền vào." },
+        { q: "Câu 50:\nCho đoạn mã sau và phát biểu nào sau đây đúng:\nint USCLN(int a, int b){\n    while (a != b)\n        if (a > b) a = a - b;\n        else b = b - a;\n    return a;\n}", options: { A: "2 test case để phủ các dòng lệnh, 2 test case để phủ nhánh", B: "1 test case để phủ các dòng lệnh, 2 test case để phủ nhánh", C: "2 test case để phủ các dòng lệnh, 3 test case để phủ nhánh", D: "1 test case để phủ các dòng lệnh, 1 test case để phủ nhánh" }, answer: "A", explanation: "1 TC cho a=b (không vào while, phủ false while) và 1 TC a khác b (lọt vào while đi qua if và else) => Tổng cộng cần 2 TC để phủ hết lệnh và nhánh." },
+        { q: "Câu 51:\nMột hệ thống tính phí gửi xe: Miễn phí cho 15 phút đầu. 10.000đ cho mỗi giờ tiếp theo. Tối đa 200.000đ/ngày. Kỹ thuật thiết kế test case nào phù hợp nhất để kiểm tra logic nghiệp vụ này?", options: { A: "Bảng quyết định (Decision Table Testing).", B: "Phân tích luồng điều khiển (Control Flow Analysis).", C: "Kiểm thử trường hợp sử dụng (Use Case Testing).", D: "Kiểm thử chuyển đổi trạng thái (State Transition Testing)." }, answer: "A", explanation: "Khi có các luật kết hợp logic trả phí phức tạp thì Bảng quyết định (Decision Table) là hiệu quả nhất." },
+        { q: "Câu 52:\nCần tối thiểu bao nhiêu test case để phủ được cấp 3 đoạn mã sau:\nint f(int a, int b) {\n    if (a < 0 && b < 0) return 0;\n    if (a > b || a == b) return 1;\n    return -1;\n}", options: { A: "2", B: "5", C: "4", D: "3" }, answer: "C", explanation: "Phủ cấp 3 (Multiple Condition / Decision) cần 4 test case để lướt qua toàn bộ tổ hợp các điều kiện đơn lẻ bên trong && và ||." },
+        { q: "Câu 53:\nAnnotation JUnit nào được sử dụng để xác định thứ tự chạy của các test case?", options: { A: "@Step", B: "@Order", C: "@Important", D: "@Display" }, answer: "B", explanation: "@Order() phối hợp cùng class level để chạy test case theo số thứ tự chỉ định." },
+        { q: "Câu 54:\nĐộ phức tạp chu trình của đoạn mã giả sau là bao nhiêu?\nint i = 1, s = 2;\ndo {\n    s += i;\n    cout << \"i = \" << i << \" => s = \" << s << endl;\n} while (i++ < 10);", options: { A: "3", B: "2", C: "4", D: "5" }, answer: "B", explanation: "Chỉ có 1 mệnh đề điều kiện tại 'while (i++ < 10)'. Số McCabe M = 1 (điều kiện) + 1 = 2." },
+        { q: "Câu 55:\nKiểm thử giá trị biên mạnh của hàm tính số lượng nghiệm không trùng nhau của phương trình bậc hai int f(int a, int b, int c) với ba số a, b, c có khoảng giá trị từ 1 đến 100 thì cần bao nhiêu test case", options: { A: "13", B: "19", C: "9", D: "125" }, answer: "B", explanation: "Biên mạnh cho n biến là 6n + 1. Hàm có 3 biến (a,b,c) => 6 * 3 + 1 = 19 test case." },
+        { q: "Câu 56:\nNguyên tắc kiểm thử “Không thể chứng minh sự tồn tại của lỗi” có ý nghĩa gì?", options: { A: "Kiểm thử chỉ có thể phát hiện lỗi, không thể chứng minh phần mềm không có lỗi", B: "Kiểm thử có thể loại bỏ mọi lỗi trong phần mềm", C: "Kiểm thử giúp chứng minh phần mềm hoàn hảo", D: "Kiểm thử chỉ cần kiểm tra giao diện người dùng" }, answer: "A", explanation: "Nguyên lý này nhấn mạnh việc test giúp tìm ra lỗi, chứ không thể dùng làm bằng chứng khẳng định 100% phần mềm đã sạch lỗi." },
+        { q: "Câu 57:\nCái nào sau đây không phải là một trong những nguyên tắc của kiểm thử", options: { A: "Kiểm thử càng sớm càng tốt", B: "Lỗi thường phân bố tập trung", C: "Nghịch lý thuốc trừ sâu", D: "Kiểm thử toàn bộ" }, answer: "D", explanation: "Kiểm thử toàn bộ (Test hết 100% mọi kịch bản) là bất khả thi, vì vậy nó KHÔNG phải là một nguyên tắc kiểm thử." },
+        { q: "Câu 58:\nCấp độ kiểm thử nào tập trung vào sự tương tác giữa các thành phần hoặc hệ thống?", options: { A: "Kiểm thử hệ thống (System Testing).", B: "Kiểm thử chấp nhận (Acceptance Testing).", C: "Kiểm thử đơn vị (Unit Testing).", D: "Kiểm thử tích hợp (Integration Testing)." }, answer: "D", explanation: "Integration Testing (Tích hợp) có mục tiêu tìm lỗi giao tiếp, truyền dẫn dữ liệu giữa các module." },
+        { q: "Câu 59:\nBạn đang test một hệ thống bán hàng online. Chi phí vận chuyển được xác định với mức giá là: dưới 5Kg là 3$, từ 5Kg đến 10Kg là 5$, trên 10Kg là 10$. Trọng lượng mà nhỏ hơn hoặc bằng 0 được xem là không hợp lệ. Xác định có bao nhiêu lớp tương đương cần thiết để test.", options: { A: "2", B: "3", C: "4", D: "5" }, answer: "C", explanation: "Các lớp: Không hợp lệ (<=0), hợp lệ 1 (<5), hợp lệ 2 (5-10), hợp lệ 3 (>10). Tổng cộng 4 lớp." },
+        { q: "Câu 60:\nKỹ thuật đoán lỗi được sử dụng tốt nhất", options: { A: "Khi tiếp cận đầu tiên để tạo ra các test case", B: "Sau khi các kỹ thuật chính thức được áp dụng", C: "Sau khi hệ thống hoạt động", D: "Bởi những tester thiếu kinh nghiệm" }, answer: "B", explanation: "Đoán lỗi (Error guessing) là phương pháp bổ trợ phát huy hiệu quả nhất sau khi đã thiết kế bằng các kỹ thuật bài bản." },
+        { q: "Câu 61:\nCho đoạn mã giả sau, số test case tối thiểu cần có để phủ tất cả các nhánh?\nint test(int k){\n    if(k<=1) return -1;\n    for(int i=2; i<k; i++)\n        if(k%i==0) return -1;\n    return 1;\n}", options: { A: "Có 4 test case", B: "Có 2 test case", C: "Có 3 test case", D: "Tất cả đều sai" }, answer: "C", explanation: "1 TC k<=1. 1 TC k chia hết cho i (hợp số). 1 TC k không chia hết (số nguyên tố). Tổng 3 TC." },
+        { q: "Câu 62:\nĐoạn mã giả: IF (Tuổi < 18 OR Là_Học_Sinh == TRUE) THEN Giảm_giá = 10%. Để đạt được 100% Độ bao phủ quyết định (Decision Coverage) với số lượng test case tối thiểu, bạn cần các trường hợp nào?", options: { A: "TC1: Tuổi=20, Là_Học_Sinh=FALSE.", B: "TC1: Tuổi=20, Là_Học_Sinh=TRUE; TC2: Tuổi=20, Là_Học_Sinh=FALSE.", C: "TC1: Tuổi=15, Là_Học_Sinh=TRUE; TC2: Tuổi=15, Là_Học_Sinh=FALSE.", D: "TC1: Tuổi=10, Là_Học_Sinh=FALSE." }, answer: "B", explanation: "Lệnh OR cần 1 TC làm vế tổng hợp trả ra True và 1 TC làm vế tổng hợp trả ra False. Đáp án B đáp ứng đủ điều này." },
+        { q: "Câu 63:\nPhát biểu nào sau đây đúng về độ bao phủ", options: { A: "Cho biết test kỹ hay không", B: "Không liên quan gì đến kiểm thử", C: "Chỉ dừng test khi đạt được độ bao phủ là 100%", D: "Số test case càng lớn thì độ bao phủ càng cao" }, answer: "A", explanation: "Độ bao phủ (Coverage) chính là thước đo thể hiện tính kỹ lưỡng của quá trình test." },
+        { q: "Câu 64:\nNguyên lý 'Nghịch lý thuốc trừ sâu' (Pesticide Paradox) gợi ý hành động nào sau đây?", options: { A: "Cần thường xuyên xem xét và cập nhật bộ test case, viết thêm test case mới.", B: "Dừng kiểm thử khi đã tìm thấy đủ số lượng lỗi dự kiến.", C: "Chỉ sử dụng những test case đã tìm thấy lỗi trong quá khứ.", D: "Nên tập trung vào kiểm thử tự động hơn là thủ công." }, answer: "A", explanation: "Nghịch lý thuốc trừ sâu đòi hỏi Tester phải liên tục tạo thêm kịch bản mới vì dùng lại bộ test cũ sẽ không bắt được lỗi mới." },
+        { q: "Câu 65:\nNguồn nào sau đây là nguồn tốt nhất về “Kết quả mong đợi” cho các tập lệnh “Kiểm thử chấp nhận” của người dùng", options: { A: "Đặc tả chương trình", B: "Yêu cầu của người dùng", C: "Đặc tả hệ thống", D: "Kết quả thực tế" }, answer: "B", explanation: "Kiểm thử chấp nhận (UAT) đối chiếu ứng dụng với nhu cầu thực của khách hàng => dựa trên yêu cầu của người dùng." },
+        { q: "Câu 66:\nCho đoạn mã giả sau, số test case tối thiểu để phủ được tất cả các nhánh là?\nif(x>y) x=x+1;\ny=y+1;\nwhile (x>y) y=x*y;\nx=x+1;", options: { A: "Có 2 ca kiểm thử", B: "Có 1 ca kiểm thử", C: "Có 3 ca kiểm thử", D: "Có 4 ca kiểm thử" }, answer: "A", explanation: "Cần 2 Test case để đi qua các trạng thái nhánh cấu trúc If và các chu trình của vòng lặp while." },
+        { q: "Câu 67:\nKết quả của đoạn mã sau là gì.\npublic class TestClass {\n    @Test\n    public void testingMethod() {\n        String message = \"Test\";\n        assertEquals(3, message.length());\n    }\n}", options: { A: "Test chạy với kết quả là thành công", B: "Lỗi Runtime", C: "Lỗi biên dịch", D: "Test chạy với kết quả là thất bại" }, answer: "D", explanation: "Chiều dài chuỗi 'Test' là 4, nhưng lệnh so sánh mong đợi bằng 3, nên test case sẽ Báo lỗi (Failed)." },
+        { q: "Câu 68:\nAi thực hiện Unit Test", options: { A: "QC", B: "Developer", C: "User", D: "Designer" }, answer: "B", explanation: "Kiểm thử đơn vị (Unit Test) do chính Developer - lập trình viên tạo và chạy." },
+        { q: "Câu 69:\nƯu điểm chính của phương pháp kiểm thử tích hợp dưới lên (Bottom-up) là gì?", options: { A: "Không cần phải tạo stub", B: "Thiết kế test case dễ và không cần driver", C: "Kiểm thử ngay chức năng điều khiển hệ thống", D: "Phát hiện sớm các lỗi hệ thống" }, answer: "A", explanation: "Từ dưới lên nghĩa là module nền đã có sẵn, nên không cần xây dựng code giả (stub) để hứng tín hiệu bên dưới." },
+        { q: "Câu 70:\nCác file JUnit test được lưu trong các file có phần mở rộng là gì?", options: { A: ".test", B: ".unit", C: ".junit", D: ".java" }, answer: "D", explanation: "Mã JUnit đơn thuần là ngôn ngữ lập trình Java, nên lưu dưới định dạng '.java'." },
+        { q: "Câu 71:\nCho đoạn mã sau, cần tối thiểu bao nhiêu test case để phủ lệnh 100%?\nint n; cout << \"Nhap n: \"; cin >> n;\nswitch (n%3){\n    case 0: cout << \"Chia het cho 3\"; break;\n    case 1: case 2: cout << \"Khong chia het cho 3\"; }", options: { A: "1", B: "3", C: "2", D: "4" }, answer: "C", explanation: "Lệnh in chia thành 2 khối tách biệt (case 0 và case 1+2), cần tối thiểu 2 TC để in hết các dòng." },
+        { q: "Câu 72:\nKỹ thuật nào sau đây là một hình thức kiểm thử tĩnh?", options: { A: "Đoán lỗi", B: "Kiểm thử hồi quy tự động", C: "Cung cấp đầu vào, chạy chương trình và kiểm tra kết quả đầu ra", D: "Review code" }, answer: "D", explanation: "Review (đọc và rà soát) code là phương pháp kiểm thử tĩnh không cần chạy trình biên dịch." },
+        { q: "Câu 73:\nCái nào sau đây không phải là một phần của kiểm thử hệ thống:", options: { A: "Kiểm thử khả năng phục hồi khi gặp sự cố không", B: "Kiểm tra viết code có đúng chuẩn", C: "Kiểm tra xem có sử dụng dễ không", D: "Kiểm thử hiệu suất" }, answer: "B", explanation: "Kiểm tra viết code đúng chuẩn (Coding Standard) thuộc phạm vi review tĩnh của dev, không thuộc System Testing." },
+        { q: "Câu 74:\nKiểm thử hồi quy (Regression Testing) nên được thực hiện khi nào?", options: { A: "Sau khi mã nguồn đã được sửa đổi hoặc thay đổi môi trường.", B: "Khi khách hàng yêu cầu kiểm thử hiệu năng.", C: "Chỉ thực hiện một lần duy nhất trước khi phát hành.", D: "Chỉ khi bắt đầu một dự án mới." }, answer: "A", explanation: "Khi có bất kỳ thay đổi nào từ code hay môi trường, ta cần test hồi quy để đảm bảo các chức năng cũ không bị hỏng." },
+
+        // --- 45 CÂU BỔ SUNG ---
+        { q: "Lệnh nào sau đây dùng để thiết lập giá trị trả về của một đối tượng giả lập", options: { A: "onInvokeReturn()", B: "returnValue()", C: "return WhenCalled()", D: "when().thenReturn()" }, answer: "D", explanation: "Cú pháp chuẩn của thư viện Mockito để cấu hình đối tượng giả lập là when().thenReturn()." },
+        { q: "JUnít chủ yếu được sử dụng để làm gì?", options: { A: "Unit Test", B: "Debug", C: "Tích hợp liên tục", D: "Thiết kế test case" }, answer: "A", explanation: "JUnit là framework phổ biến dùng để viết các Unit Test trong ngôn ngữ Java." },
+        { q: "Làm thế nào có thể mong đợi một ngoại lệ cụ thể được đưa ra trong 1 test case JUnit?", options: { A: "Sử dụng annotation @ExpectException", B: "Sử dụng try-catch", C: "Sử dụng phương thức ExpectException trên đối tượng test", D: "Sử dụng phương thức assert Throws()" }, answer: "D", explanation: "assertThrows() là phương thức được sử dụng trong JUnit 5 để xác nhận một ngoại lệ được ném ra đúng như mong đợi." },
+        { q: "Annotation nào được sử dụng để chỉ ra một phương thức là phương thức test trong JUnit", options: { A: "@Testing", B: "@Testify", C: "@TestCase", D: "@Test" }, answer: "D", explanation: "Sử dụng @Test đặt trên phương thức để báo cho JUnit biết đó là một bài test cần thực thi." },
+        { q: "Hàm so khớp Hamcrest nào giống toán tử &&", options: { A: "all", B: "and", C: "any Of", D: "allof" }, answer: "D", explanation: "Hàm allOf() yêu cầu tất cả các điều kiện bên trong nó đều phải thỏa mãn, tương đương với toán tử logic AND (&&)." },
+        { q: "Việc thực hiện các test case chức năng là một phần của", options: { A: "Quá trình xác minh (verification)", B: "Quá trình báo cáo kết quả test", C: "Quá trình thiết kế cấp cao", D: "Quá trình xác nhận (validation)" }, answer: "D", explanation: "Kiểm tra xem phần mềm có đáp ứng đúng nhu cầu chức năng của người dùng thuộc pha Xác nhận (Validation)." },
+        { q: "Test case Selenium IDE có ba cột: command, target và value. Cột Target lưu trữ dữ liệu gì?", options: { A: "Phần từ hoặc vị trí nơi lệnh được thực thi", B: "Bước tiếp theo", C: "Kết quả thực hiện của 1 bước test", D: "Mục đích của 1 bước test" }, answer: "A", explanation: "Cột Target chứa các bộ định vị (locator) như ID, XPath để xác định đối tượng cần tương tác trên giao diện." },
+        { q: "Hàm verify() của Mockito dùng để làm gì?", options: { A: "So sánh kết quả thực tế với kết quả mong đợi", B: "Tạo đối tượng giả lập bản phần", C: "Tạo đối tượng giả lập toàn phần", D: "Xác mình 1 phương thức có được gọi hay không" }, answer: "D", explanation: "verify() kiểm tra hành vi, xem đối tượng mock có bị hệ thống gọi tới hay không." },
+        { q: "Giả sử đối tượng giả lập objA có 1 phương thức f() không được gọi. Lệnh nào sau đây dùng để xác định phương thức f().", options: { A: "assert(objA,never()).f()", B: "verifyNolnteractions(objA)", C: "verifyNever(objA);", D: "assertNever(objA).f()" }, answer: "B", explanation: "verifyNoInteractions(objA) đảm bảo rằng không có bất kỳ tương tác nào xảy ra trên toàn bộ đối tượng giả lập đó." },
+        { q: "Phát biểu nào phù hợp nhất cho kết quả mong đợi (expected result)", options: { A: "Chỉ được sử dụng trong test component", B: "Tốt nhất là giá trị khi thực thi chương trình", C: "Hữu ích nhất khi được xác định trước", D: "Chỉ quan trọng trong test hệ thống" }, answer: "C", explanation: "Kết quả mong đợi cần phải được định nghĩa trước khi thực thi để tránh sự chủ quan của Tester." },
+        { q: "Phát biểu nào sau đây đúng với Unit test", options: { A: "Đó là việc xác nhận các thành phần đơn vị, được thực hiện bởi developer trong môi trường test", B: "Đó là việc xác nhận các thành phần đơn vị, được thực hiện bởi tester trong môi trường test", C: "Đó là việc xác nhận các thành phần đơn vị, được thực hiện bởi developer trong môi trường phát triển", D: "Đó là xác nhận giao diện (interface) giữa các thành phần đơn vị" }, answer: "C", explanation: "Unit test do chính các Lập trình viên viết và chạy thẳng trên môi trường mã nguồn của họ." },
+        { q: "Phát biểu nào sau đây sai về test tĩnh", options: { A: "Test tĩnh có thể đưa ra các phép đo như độ phức tạp chu trình", B: "Test tĩnh yêu cầu phải chạy code", C: "Là quá trình review một tài liệu như test plan", D: "Là quá trình review source code" }, answer: "B", explanation: "Bản chất của kiểm thử tĩnh (Static testing) là chỉ phân tích, review mà KHÔNG chạy code." },
+        { q: "Sự khác biệt giữa lệnh assert và lệnh verify của Selenium IDE là gì?", options: { A: "Lệnh assert không thành công sẽ dừng kiểm tra nhưng lệnh verify không thành công thì vẫn tiếp tục.", B: "Lệnh verify không thành công sẽ dừng kiểm tra nhưng lệnh assert không thành công thì vẫn tiếp tục.", C: "Lệnh verify ít phổ biến hơn các lệnh assert", D: "Lệnh assert ít phổ biến hơn các lệnh verify" }, answer: "A", explanation: "Lệnh assert sẽ bắt buộc hủy bỏ bài test nếu thất bại, còn lệnh verify cho phép đánh dấu lỗi rồi chạy tiếp." },
+        { q: "Kiểm tra thời gian chờ là", options: { A: "Phụ thuộc vào phần mềm và phần cứng", B: "Phụ thuộc vào phần mềm", C: "Phụ thuộc vào phần cứng", D: "Độc lập với phần mềm và phần cứng" }, answer: "A", explanation: "Thời gian chờ (Timeout) bị chi phối bởi cả năng lực máy chủ/thiết bị lẫn thuật toán phần mềm." },
+        { q: "Phát biểu nào sau đây đúng về phương thức then Return() trong Mockito?", options: { A: "Nó được sử dụng để xác minh rằng một phương thức đã được gọi trên một đối tượng giả", B: "Nó được sử dụng để chỉ định giá trị trả về của một lệnh gọi phương thức trên một đối tượng giả", C: "Nó được sử dụng để tạo một đối tượng giả", D: "Nó không phải là một phương thức hợp lệ trong Mockito" }, answer: "B", explanation: "thenReturn() sẽ đưa ra giá trị chuẩn bị sẵn khi có lệnh gọi vào phương thức giả lập đã cấu hình." },
+        { q: "Trong test double,đối tượng stub khác với đối tượng mock như thế nào?", options: { A: "Mock mô phỏng kết quả xử lý của một hành động còn stub được sử dụng để xác nhận một hành động có được thực hiện hay không.", B: "Mock là đối tượng giả còn stub là đối tượng thật", C: "Stub mô phỏng kết quả xử lý của một hành động còn mock được sử dụng để xác nhận một hành động có được thực hiện hay không", D: "Stub là đối tượng giả còn mock là đối tượng thật." }, answer: "C", explanation: "Stub cung cấp dữ liệu cứng (State Verification). Mock theo dõi tương tác xem hàm có bị gọi hay không (Behavior Verification)." },
+        { q: "Phát biểu nào sau đây đúng về phương thức when() trong Mockito?", options: { A: "Nó được sử dụng để xác minh rằng một phương thức đã được gọi trên một đối tượng giả", B: "Nó được sử dụng để ném một ngoại lệ khi một phương thức được gọi trên một đối tượng giả", C: "Nó được sử dụng để chỉ định hành vi của một lệnh gọi phương thức trên một đối tương giả", D: "Nó được sử dụng để tạo một đối tượng giả" }, answer: "C", explanation: "when() dùng để mồi kịch bản, quy định nếu gọi phương thức này thì giả lập hành vi gì xảy ra." },
+        { q: "Phát biểu nào sau đây phù hợp cho khái niệm độ bao phủ", options: { A: "Chỉ áp dụng cho unit test, không áp dụng cho system test", B: "Là thước đo một phần của tính kỹ lưỡng của bài kiểm tra", C: "Độ bao phủ nhánh là bắt buộc đối với tất cả các phần mềm", D: "Khi nào đạt được độ bao phủ 100% thì việc kiểm thử hoàn thành" }, answer: "B", explanation: "Độ bao phủ (Coverage) đo lường xem chúng ta đã thiết kế các test case đủ kỹ hay chưa." },
+        { q: "Phát biểu nào sau đây đúng về phương thức never() của Mockito?", options: { A: "Nó được sử dụng để xác minh rằng một phương thức đã được gọi trên một đối tượng giả", B: "Nó được sử dụng để tạo một đối tượng già", C: "Nó được sử dụng để xác minh rằng một phương thức không được gọi trên một đối tượng giả", D: "Nó được sử dụng để chỉ định hành vi của một lệnh gọi phương thức trên một đối tượng giả" }, answer: "C", explanation: "Dùng chung với verify() để khẳng định chắc chắn phương thức đó chưa từng bị gọi tới." },
+        { q: "Hàm nào sau đây được sử dụng để tạo một phần mô phỏng với Mockito", options: { A: "spy()", B: "partialMock()", C: "halfMock()", D: "mockPartial()" }, answer: "A", explanation: "spy() được dùng để tạo Partial Mock (mô phỏng bán phần) theo dõi trên một đối tượng code có thực." },
+        { q: "Cách nào sau đây dùng để tạo mới 1 đối tượng giả lập bằng Mockito", options: { A: "mock()", B: "createMock()", C: "new Mock()", D: "new Mock()" }, answer: "A", explanation: "Hàm static mock(ClassName.class) khởi tạo ra một cấu trúc hoàn toàn giả." },
+        { q: "Chọn phát biểu đúng cho Smoke testing", options: { A: "Nó được thực hiện sau khi quá trình test hệ thống kết thúc", B: "Nó là sự thay thế cho test hồi quy", C: "Nó là sự thay thế cho test chấp nhận", D: "Nó được thực hiện để đảm bảo hệ thống đã sẵn sàng trải qua quá trình kiểm tra chuyên sâu và nghiêm ngặt hơn" }, answer: "D", explanation: "Kiểm thử khói (Smoke test) là bước xác thực nhanh bản build có sống sót để test sâu tiếp hay không." },
+        { q: "Điều quan trọng nhất về thiết kế kiểm thử sớm là:", options: { A: "Không cần kiểm duyệt.", B: "Sẽ tìm thấy tất cả các lỗi.", C: "Làm cho việc chuẩn bị kiểm thử dễ dàng hơn.", D: "Có thể ngăn chặn lỗi gia tăng." }, answer: "D", explanation: "Thiết kế sớm giúp phát hiện lỗ hổng tài liệu, từ đó không cho lỗi sinh ra ở giai đoạn lập trình." },
+        { q: "Mục đích của annotation @DisplayName trong JUnit là gì?", options: { A: "Để chỉ định tên của test suite.", B: "Đổi tên phương pháp thử trong thời gian chạy.", C: "Đặt tên hiển thị tùy chỉnh cho phương pháp thử nghiệm.", D: "Hiển thị tên người chạy thử." }, answer: "C", explanation: "Giúp báo cáo Test Report hiển thị chuỗi tên thân thiện, dễ đọc thay vì tên hàm code khô khan." },
+        { q: "Củ pháp đúng để truy cập giá trị của biến x trong Selenium IDE là gì?", options: { A: "(x)", B: "x", C: "Sx", D: "${x}" }, answer: "D", explanation: "Selenium IDE sử dụng cú pháp nội suy chuỗi ${tên_biến} để đọc giá trị biến được lưu." },
+        { q: "Loại test nào được thực hiện để kiểm tra xem giao diện người dùng có dễ sử dụng không", options: { A: "White Box Testing", B: "Usability Testing", C: "Security Testing", D: "Unit Testing" }, answer: "B", explanation: "Kiểm thử tính khả dụng (Usability Testing) đo độ trực quan, dễ thao tác của giao diện." },
+        { q: "Nguồn nào sau đây là nguồn tốt nhất về \"Kết quả mong đợi\" cho các test case “Kiểm thử chấp nhận\" của người dùng", options: { A: "Đặc tả chương trình", B: "Đặc tả hệ thống", C: "Yêu cầu của người dùng", D: "Kết quả thực tế" }, answer: "C", explanation: "Kiểm thử chấp nhận (UAT) đo đạc trực tiếp với nhu cầu nên Yêu cầu của người dùng là chuẩn đối chiếu cao nhất." },
+        { q: "Hàm assertTrue(\"message\",A) làm gì?", options: { A: "Khẳng định rằng điều kiện A là đúng", B: "Khẳng định rằng A chứa A \"message\"", C: "Khẳng định rằng điều kiện A là sai", D: "Khẳng định rằng \"menage\"-A" }, answer: "A", explanation: "Hàm đòi hỏi biến hoặc biểu thức A phải có logic là TRUE, nếu không thì cảnh báo lỗi message." },
+        { q: "Phát biểu nào sau đây phù hợp nhất về kiểm thử", options: { A: "Mục tiêu mục đích của kiểm thử là để chứng minh rằng chương trình hoạt động.", B: "Mục đích của kiểm thử là để chứng minh rằng chương trình không có lỗi.", C: "Mục đích của kiểm thử là để chứng minh rằng chương trình được thực hiện đúng phương pháp", D: "Kiểm thử là thực thi phần mềm nhằm mục đích tìm ra những khuyết điểm của phần mềm" }, answer: "D", explanation: "Mục đích quan trọng nhất của kiểm thử là cố gắng phá vỡ phần mềm để tìm ra lỗi (Defects)." },
+        { q: "Phủ lệnh và phủ nhánh có nghĩa là", options: { A: "Mỗi dòng lệnh đều được test", B: "Mọi câu lệnh và mọi nhánh đều được kiểm", C: "Tất cả các câu lệnh if đều được kiểm", D: "Đã kiểm tra mọi tổ hợp giá trị của câu lệnh IF trong chương trình" }, answer: "B", explanation: "Bao phủ lệnh (đi qua tất cả các code) và Bao phủ nhánh (đi qua mọi quyết định True/False)." },
+        { q: "Làm cách nào để đánh giá thời gian chạy của một phương thức trong JUnit?", options: { A: "Sử dụng phương thức assertTimeout", B: "Sử dụng annotation @Speed", C: "Sử dụng phương thức assert Speed", D: "Sử dụng phương thức Timeout" }, answer: "A", explanation: "JUnit 5 dùng assertTimeout() để ép một đoạn code không được chạy vượt quá khung thời gian quy định." },
+        { q: "Cái nào sau đây là một CSS locator tương đương với Xpath //div[@id='example']", options: { A: "css div.example", B: "css-div#example", C: "css-div@example", D: "css-div example" }, answer: "B", explanation: "Dấu thăng (#) trong CSS được sử dụng để truy xuất thuộc tính ID, nên XPath @id='example' thành div#example." },
+        { q: "Trường hợp nào sẽ là trường hợp kiểm thử chức năng cho hệ thống đặt chỗ trực tuyến?", options: { A: "Kiểm tra cách hệ thống hoạt động khi số lượng lớn người dùng đang truy cập trang web", B: "Kiểm tra xem người dùng có thể đặt vé từ Mumbai đến Goa không", C: "Đo thời gian đáp ứng của hệ thống", D: "Đảm bảo người giả cũng có thể sử dụng dễ dàng" }, answer: "B", explanation: "Tính năng đặt vé là một tác vụ chức năng (nghiệp vụ). Còn chịu tải, tốc độ, tính khả dụng là phi chức năng." },
+        { q: "Phát biểu nào sau đây đúng về các hoạt động “verification” trong kiểm thử", options: { A: "Kiểm tra xem chúng ta đang xây dựng hệ thống có đúng không", B: "Kiểm tra xem chúng ta có đang xây dựng đúng hệ thống không", C: "Được thực hiện bởi một nhóm kiểm thử độc lập", D: "Đàm bảo rằng đó là điều người dùng thực sự muốn" }, answer: "A", explanation: "Verification: Are we building the product right? (Đang làm có đúng tài liệu/quy trình kỹ thuật không)." },
+        { q: "Một kỹ thuật kiểm thử phổ biến trong quá trình Unit test là", options: { A: "Kiểm tra độ phủ lệnh và phủ nhánh", B: "Đánh giá năng suất", C: "Kiểm tra tính khả dụng", D: "Kiểm tra tính bảo mật" }, answer: "A", explanation: "Unit test dùng các kỹ thuật cấu trúc hộp trắng như bao phủ dòng lệnh, bao phủ nhánh." },
+        { q: "Annotation nào xác định 1 phương thức test có tham số?", options: { A: "@ParameterizedTest", B: "@DataDriven Test", C: "@Parameters", D: "@TestWithParams" }, answer: "A", explanation: "@ParameterizedTest khai báo bài test lặp lại bằng dữ liệu tĩnh cung cấp từ bên ngoài." },
+        { q: "Phát biểu nào sau đây đúng về quá trình xây dựng phần mềm theo hướng tiếp cận TDD.", options: { A: "Trải qua 3 giai đoạn: test, code, retest", B: "Trải qua 2 giai đoạn: test trước, code sau", C: "Trải qua 3 giai đoạn: red, green, refactor", D: "Phải thực hiện việc test 2 lần để có ít bug" }, answer: "C", explanation: "Test Driven Development trải qua luồng: Red (Test fail) -> Green (Code cho pass test) -> Refactor (Tối ưu code)." },
+        { q: "Phát biểu nào sau đây không phải là một trong những nguyên tắc của kiểm thử", options: { A: "Lỗi thường phân bố tập trung", B: "Kiểm thử càng sớm càng tốt", C: "Kiểm thử phải đạt được 100% độ bao phủ", D: "Nghịch lý thuốc trừ sâu" }, answer: "C", explanation: "Kiểm thử đạt 100% (toàn diện/tất cả các trường hợp) là nguyên lý bất khả thi (Exhaustive testing is impossible)." },
+        { q: "Trong test double, đối tượng dummy khác với đối tượng fake như thế nào?", options: { A: "Dummy là đối tượng giả lập, fake là một đối tượng thật nhưng giả đối tượng khác", B: "Hai đối tượng này không khác nhau", C: "Fake là đối tượng giả lập, dummy là một đối tượng thật nhưng giả đối tượng khác", D: "Fake là giả hành vi, dummy là giả kết quả" }, answer: "A", explanation: "Dummy chỉ dùng lấp chỗ trống danh sách tham số (không chạy code), còn Fake thực sự có logic thu gọn." },
+        { q: "Trình tự đúng của các giai đoạn kiểm thử phần mềm là:", options: { A: "Đơn vị -> Tích hợp -> Hệ thống -> Chấp nhận.", B: "Hệ thống - Đơn vị - Tích hợp -> Chấp nhận", C: "Tích hợp -> Chấp nhận -> Đơn vị -> Hệ thống", D: "Đơn vị -> Tích hợp -> Chấp nhận -> Hệ thống" }, answer: "A", explanation: "Trình tự test từ nhỏ tới lớn: Unit Test -> Integration Test -> System Test -> Acceptance Test." },
+        { q: "Kiểm thử được thực hiện đầy đủ khi", options: { A: "Đạt độ tin cậy cần thiết được thiết lập trong test plan.", B: "Người dùng hài lòng.", C: "Hết thời gian.", D: "Không tìm thấy lỗi nào nữa" }, answer: "A", explanation: "Quyết định dừng kiểm thử phải dựa trên tiêu chí đo lường (Exit Criteria) được duyệt trong Test Plan." },
+        { q: "Làm thế nào để chỉ định một phương thức kiểm thử cụ thể sẽ bị bỏ qua trong quá trình thực thi", options: { A: "@Skip", B: "@Ignore Test", C: "@Disabled", D: "@Avoid" }, answer: "C", explanation: "Trong thư viện JUnit 5, sử dụng annotation @Disabled để ngắt/bỏ qua một bài test." }
+    ];
+
+    // Thuật toán xáo trộn mảng (Fisher-Yates)
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Hàm khởi tạo và hiển thị câu hỏi (Hỗ trợ xáo trộn)
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = ''; // Xóa sạch giao diện cũ
+
+        // Xáo trộn thứ tự các câu hỏi
+        shuffleArray(quizData);
+
+        quizData.forEach((item, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-block';
+            questionDiv.id = `block-${index}`;
+            
+            const questionTitle = document.createElement('div');
+            questionTitle.className = 'question-text';
+
+            // Xóa bỏ chuỗi "Câu X: " cứng trong gốc để đánh lại số thứ tự từ 1 đến 119 cho đẹp mắt sau khi đảo
+            let cleanQuestion = item.q.replace(/^(Câu\s*\d+(?:\s*\([^)]+\))?\s*:\s*)/i, '').trim();
+            questionTitle.innerText = `Câu ${index + 1}:\n${cleanQuestion}`;
+            questionDiv.appendChild(questionTitle);
+
+            const optionsList = document.createElement('ul');
+            optionsList.className = 'options';
+
+            // Xáo trộn thứ tự các đáp án bên trong
+            let optionsArray = Object.entries(item.options);
+            shuffleArray(optionsArray);
+
+            for (const [key, value] of optionsArray) {
+                const li = document.createElement('li');
+                const label = document.createElement('label');
+                label.id = `label-${index}-${key.toUpperCase()}`;
+                
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `question${index}`;
+                radio.value = key;
+                
+                radio.addEventListener('change', () => handleAnswerSelection(index, key));
+
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(` ${key}. ${value}`));
+                li.appendChild(label);
+                optionsList.appendChild(li);
+            }
+
+            questionDiv.appendChild(optionsList);
+            
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.className = 'feedback';
+            feedbackDiv.id = `feedback-${index}`;
+            questionDiv.appendChild(feedbackDiv);
+
+            container.appendChild(questionDiv);
+        });
+    }
+
+    // Hàm xử lý ngay khi người dùng chọn đáp án
+    function handleAnswerSelection(qIndex, selectedValue) {
+        const item = quizData[qIndex];
+        const feedbackDiv = document.getElementById(`feedback-${qIndex}`);
+        const blockDiv = document.getElementById(`block-${qIndex}`);
+        
+        // Khóa không cho chọn lại (vô hiệu hóa các radio của câu này)
+        const allRadios = document.querySelectorAll(`input[name="question${qIndex}"]`);
+        allRadios.forEach(radio => {
+            radio.disabled = true;
+            radio.parentElement.classList.add('disabled-label');
+        });
+
+        const normalizedSelected = selectedValue.toUpperCase();
+        const normalizedAnswer = item.answer.toUpperCase();
+
+        if (normalizedSelected === normalizedAnswer) {
+            feedbackDiv.innerHTML = `<strong>✓ Chính xác!</strong> Giải thích: ${item.explanation}`;
+            feedbackDiv.style.color = "#27ae60";
+            feedbackDiv.style.backgroundColor = "#eafaf1";
+            feedbackDiv.style.border = "1px solid #27ae60";
+            blockDiv.style.borderLeft = "5px solid #27ae60";
+        } else {
+            feedbackDiv.innerHTML = `<strong>✗ Sai rồi. Đáp án đúng là: ${normalizedAnswer}</strong> Giải thích: ${item.explanation}`;
+            feedbackDiv.style.color = "#c0392b";
+            feedbackDiv.style.backgroundColor = "#fce8e6";
+            feedbackDiv.style.border = "1px solid #c0392b";
+            blockDiv.style.borderLeft = "5px solid #c0392b";
+            
+            // Làm nổi bật nhãn của đáp án đúng (dù bị xáo trộn vị trí)
+            const correctLabel = document.getElementById(`label-${qIndex}-${normalizedAnswer}`);
+            if(correctLabel) {
+                correctLabel.style.color = "#27ae60";
+                correctLabel.style.fontWeight = "bold";
+            }
+        }
+        
+        feedbackDiv.style.display = "block";
+    }
+
+    // Hàm xử lý khi bấm nút "Làm Lại Từ Đầu"
+    function restartQuiz() {
+        initQuiz(); // Tạo lại giao diện với mảng đã xáo trộn mới
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Đưa lên đầu trang mượt mà
+    }
+
+    // Khởi tạo hiển thị lần đầu tiên tải trang
+    initQuiz();
+</script>
+
+</body>
+</html>
